@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 public enum GameState
 {
@@ -26,6 +27,7 @@ public class GameManager : MonoBehaviour
                     Time.timeScale = 1;
                     break;
                 case GameState.GameOver:
+                    reStartRealTime = Time.realtimeSinceStartup + 1;
                     Time.timeScale = 0;
                     break;
             }
@@ -35,7 +37,8 @@ public class GameManager : MonoBehaviour
 
     public const string movingCubeStr = "MovingCube";
     GameObject movingCube;
-    [SerializeField] Text text;
+    Text levelText;
+    Text comboText;
     [SerializeField] float cubeHeight = 0.2f;
     [SerializeField] float positionValue = 2;
     Color cubeColor = new Color(214, 255, 107, 255);
@@ -43,18 +46,28 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         GameState = GameState.Play;
-        text = GameObject.Find("Canvas").transform.Find("Text").GetComponent<Text>();
+        levelText = GameObject.Find("Canvas").transform.Find("LevelText").GetComponent<Text>();
+        comboText = GameObject.Find("Canvas").transform.Find("ComboText").GetComponent<Text>();
         movingCube = (GameObject)Resources.Load(movingCubeStr);
         cubeColor = movingCube.GetComponent<Renderer>().sharedMaterial
                               .GetColor("_BaseColor");
+
         newCube = movingCube;
+        comboCount = 0;
+        comboText.text = "";
         CreateCube();
     }
 
+    float reStartRealTime;
     void Update()
     {
         if (GameState == GameState.GameOver)
-            return;
+        {
+            if (Input.anyKeyDown && Time.realtimeSinceStartup > reStartRealTime)
+            {
+                SceneManager.LoadScene(0);
+            }
+        }
 
         if (Input.anyKeyDown)
         {
@@ -68,7 +81,7 @@ public class GameManager : MonoBehaviour
 
     GameObject newCube;
     GameObject prevCube;
-        Vector3 multFactor;
+    Vector3 multFactor;
     [SerializeField] int cubeCount = 0;
     private void CreateCube()
     {
@@ -76,7 +89,7 @@ public class GameManager : MonoBehaviour
 
         cubeCount++;
         newCube = Instantiate(prevCube);
-        if (cubeCount % 2 == 1)
+        if (IsMoveX())
         {
             newCube.transform.position = new Vector3(positionValue, cubeCount * cubeHeight, prevCube.transform.position.z);
             multFactor = new Vector3(-1, 1, 1);
@@ -95,9 +108,11 @@ public class GameManager : MonoBehaviour
         // 카메라 위로 이동
         Camera.main.transform.Translate(0, cubeHeight, 0, Space.World);
 
-        text.text = $"Level {cubeCount}";
+        levelText.text = $"Level {cubeCount}";
     }
 
+    int comboCount = 0;
+    [SerializeField] float comboScalePoint = 1.2f;
     void BreakCube()
     {
         if (prevCube == null)
@@ -106,20 +121,70 @@ public class GameManager : MonoBehaviour
 
         var prevCubeTr = prevCube.transform;
         var newCubeTr = newCube.transform;
-        //prevCube의 영역을 벗어나면 부수기
-        var posCenter = new Vector3((prevCubeTr.position.x + newCubeTr.position.x) * 0.5f,
-                                    newCubeTr.position.y,
-                                    (prevCubeTr.position.z + newCubeTr.position.z) * 0.5f);
-        var newCubeLocalScale = new Vector3(newCubeTr.localScale.x - Mathf.Abs(newCubeTr.position.x - prevCubeTr.position.x),
-                                           newCubeTr.localScale.y,
-                                           newCubeTr.localScale.z - Mathf.Abs(newCubeTr.position.z - prevCubeTr.position.z));
 
-        if (newCubeLocalScale.x < 0 || newCubeLocalScale.z < 0)
+        //prevCube의 영역을 벗어나면 부수기
+        Vector3 posCenter;
+        if (IsCombo(prevCubeTr.position, newCubeTr.position))
         {
-            text.text = $"GameOver\nLevel {cubeCount}";
-            GameState = GameState.GameOver;
+            comboCount++;
+            comboText.text = $"Combo {comboCount}!!";
+            posCenter = new Vector3(prevCubeTr.position.x, newCubeTr.position.y, prevCubeTr.position.z);
+            newCubeTr.position = posCenter;
+            newCubeTr.localScale = prevCubeTr.localScale;
+
+            if (comboCount > 4)
+                newCubeTr.localScale *= comboScalePoint;
         }
         else
-            newCubeTr.localScale = newCubeLocalScale;
+        {
+            comboCount = 0;
+            comboText.text = $"";
+            posCenter = new Vector3((prevCubeTr.position.x + newCubeTr.position.x) * 0.5f,
+                                    newCubeTr.position.y,
+                                    (prevCubeTr.position.z + newCubeTr.position.z) * 0.5f);
+            var newCubeLocalScale = new Vector3(newCubeTr.localScale.x - Mathf.Abs(newCubeTr.position.x - prevCubeTr.position.x),
+                                            newCubeTr.localScale.y,
+                                            newCubeTr.localScale.z - Mathf.Abs(newCubeTr.position.z - prevCubeTr.position.z));
+
+            if (newCubeLocalScale.x < 0 || newCubeLocalScale.z < 0)
+            {
+                levelText.text = $"GameOver\nLevel {cubeCount}\nTab to Continue";
+                GameState = GameState.GameOver;
+                return;
+            }
+            else
+            {
+                newCubeTr.position = posCenter;
+                newCubeTr.localScale = newCubeLocalScale;
+            }
+        }
+    }
+    [SerializeField] float comboDistance = 0.05f;
+    bool IsCombo(Vector3 prevCubePos, Vector3 newCubePos)
+    {
+        if (IsMoveX())
+        {
+            if (Mathf.Abs(prevCubePos.x - newCubePos.x) < comboDistance)
+                return true;
+            else
+                return false;
+        }
+        else if (IsMoveZ())
+        {
+            if (Mathf.Abs(prevCubePos.z - newCubePos.z) < comboDistance)
+                return true;
+            else
+                return false;
+        }
+
+        return false;
+    }
+    bool IsMoveX()
+    {
+        return cubeCount % 2 == 1;
+    }
+    bool IsMoveZ()
+    {
+        return cubeCount % 2 == 0;
     }
 }
