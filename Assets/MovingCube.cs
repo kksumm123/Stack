@@ -6,32 +6,27 @@ using UnityEngine;
 public class MovingCube : MonoBehaviour
 {
     Vector3 desPos;
+    public Vector3 DesPos { get => desPos; set => desPos = value; }
     Vector3 startPos;
     float startTime;
     void Start()
     {
         startPos = transform.position;
-        desPos = startPos;
-        desPos.x *= -1f;
-        desPos.z *= -1f;
         startTime = Time.time;
     }
 
     float elapsedTime;
     float calcTimeResult;
     Vector3 pos;
+
+
     void Update()
     {
         Move();
-        Stop();
-    }
 
-    private void Stop()
-    {
         if (Input.anyKeyDown)
             enabled = false;
     }
-
     private void Move()
     {
         elapsedTime = Time.time - startTime;
