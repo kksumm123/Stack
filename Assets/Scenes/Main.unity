@@ -152,9 +152,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b95388d50db775478aea4804fe8ec3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movingCube: {fileID: 1102248070224692800, guid: 2c0cbebe896bbd24aa76f4ec84044d00, type: 3}
   cubeHeight: 0.2
   positionValue: 2
+  colorStep: 5
   cubeCount: 0
 --- !u!4 &4036722
 Transform:
