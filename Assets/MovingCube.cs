@@ -11,6 +11,7 @@ public class MovingCube : MonoBehaviour
     float startTime;
     void Start()
     {
+        isMoveing = true;
         startPos = transform.position;
         startTime = Time.time;
     }
@@ -19,13 +20,11 @@ public class MovingCube : MonoBehaviour
     float calcTimeResult;
     Vector3 pos;
 
-
+    bool isMoveing = false;
     void Update()
     {
-        Move();
-
-        if (Input.anyKeyDown)
-            enabled = false;
+        if (isMoveing)
+            Move();
     }
     private void Move()
     {
@@ -33,5 +32,10 @@ public class MovingCube : MonoBehaviour
         calcTimeResult = Mathf.Abs(elapsedTime % 2 - 1f);
         pos = Vector3.Lerp(desPos, startPos, calcTimeResult);
         transform.position = pos;
+    }
+
+    internal void Disable()
+    {
+        isMoveing = false;
     }
 }

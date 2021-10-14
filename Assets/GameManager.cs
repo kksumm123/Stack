@@ -102,6 +102,7 @@ public class GameManager : MonoBehaviour
     {
         if (prevCube == null)
             return;
+        newCube.GetComponent<MovingCube>().Disable();
 
         var prevCubeTr = prevCube.transform;
         var newCubeTr = newCube.transform;
@@ -109,16 +110,16 @@ public class GameManager : MonoBehaviour
         var posCenter = new Vector3((prevCubeTr.position.x + newCubeTr.position.x) * 0.5f,
                                     newCubeTr.position.y,
                                     (prevCubeTr.position.z + newCubeTr.position.z) * 0.5f);
-        var localScale = new Vector3(newCubeTr.localScale.x - Mathf.Abs(newCubeTr.position.x - prevCubeTr.position.x),
+        var newCubeLocalScale = new Vector3(newCubeTr.localScale.x - Mathf.Abs(newCubeTr.position.x - prevCubeTr.position.x),
                                            newCubeTr.localScale.y,
                                            newCubeTr.localScale.z - Mathf.Abs(newCubeTr.position.z - prevCubeTr.position.z));
 
-        if (localScale.x < 0 || localScale.z < 0)
+        if (newCubeLocalScale.x < 0 || newCubeLocalScale.z < 0)
         {
             text.text = $"GameOver\nLevel {cubeCount}";
             GameState = GameState.GameOver;
         }
         else
-            newCubeTr.localScale = localScale;
+            newCubeTr.localScale = newCubeLocalScale;
     }
 }
