@@ -68,6 +68,7 @@ public class GameManager : MonoBehaviour
 
     GameObject newCube;
     GameObject prevCube;
+        Vector3 multFactor;
     [SerializeField] int cubeCount = 0;
     private void CreateCube()
     {
@@ -78,19 +79,14 @@ public class GameManager : MonoBehaviour
         if (cubeCount % 2 == 1)
         {
             newCube.transform.position = new Vector3(positionValue, cubeCount * cubeHeight, prevCube.transform.position.z);
-            var desPos = newCube.GetComponent<MovingCube>().DesPos;
-            desPos = newCube.transform.position;
-            desPos.x = -positionValue;
-            newCube.GetComponent<MovingCube>().DesPos = desPos;
+            multFactor = new Vector3(-1, 1, 1);
         }
         else
         {
             newCube.transform.position = new Vector3(prevCube.transform.position.x, cubeCount * cubeHeight, positionValue);
-            var desPos = newCube.GetComponent<MovingCube>().DesPos;
-            desPos = newCube.transform.position;
-            desPos.z = -positionValue;
-            newCube.GetComponent<MovingCube>().DesPos = desPos;
+            multFactor = new Vector3(1, 1, -1);
         }
+        newCube.GetComponent<MovingCube>().DesPos = Vector3.Scale(newCube.transform.position, multFactor);
 
         Color.RGBToHSV(cubeColor, out float h, out float s, out float v);
         cubeColor = Color.HSVToRGB(h + (1f / 256) * colorStep, s, v);
