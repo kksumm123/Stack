@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: fog
-  m_Shader: {fileID: -6465566751694194690, guid: 79f0d16cfdf2fbf4293b8b61be9cb584, type: 3}
-  m_ShaderKeywords: BOOLEAN_6C4164AC_ON
+  m_Name: BG
+  m_Shader: {fileID: -6465566751694194690, guid: 44b45eaa0f6c39040bef54d737f3402f, type: 3}
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -76,8 +76,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - BOOLEAN_6C4164AC: 1
-    - Vector1_BF525535: 2
+    - Vector1_04db18677079417e99b7f95a422950d3: 0
+    - Vector1_0c1eff59554148a2892c7222f9ef6edb: 0
+    - Vector1_63a0afd297734dc9998b9b19bd747613: 0.1
+    - Vector1_6e12275293314cb7a52c177f83f8f9aa: 0
+    - Vector1_c77d81e545954cd0b55278e2ba9a8830: 0
+    - Vector1_fde129e198e94c77ac906bc5d7f525ab: 0.1
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
@@ -105,7 +109,10 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - Color_58E0201D: {r: 0.629439, g: 0.9339623, b: 0.2775454, a: 1}
+    - Color_4426999063b847ddb3ca0200d0cd3a69: {r: 0.30980393, g: 0.8117648, b: 0.76470596, a: 0}
+    - Color_64d861fce71044349695d1bac7f2ea98: {r: 0.7169023, g: 0.8773585, b: 0.36832502, a: 0}
+    - Color_c2df8d538a29426d87cca79e3feeba9c: {r: 0.77647066, g: 0.95294124, b: 0.39607847, a: 0}
+    - Color_d3f90b46fa4040c48d4031973961bef6: {r: 0.83921576, g: 1, b: 0.41960788, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
