@@ -178,9 +178,9 @@ public class GameManager : MonoBehaviour
         Vector3 dropCubePosFactor = new Vector3(prevCube.transform.localScale.x, 0, prevCube.transform.localScale.z);
         dropCubePosFactor = CompensationCubePos(dropCubeScaleX, dropCubeScaleZ, dropCubePosFactor);
 
-        var dropCubePos = new Vector3(dropCubeScaleX * 0.5f + dropCubePosFactor.x,
+        var dropCubePos = new Vector3((dropCubeScaleX + dropCubePosFactor.x) * 0.5f,
                                       newCubeTr.position.y,
-                                      dropCubeScaleZ * 0.5f + dropCubePosFactor.z);
+                                      (dropCubeScaleZ + dropCubePosFactor.z) * 0.5f);
 
         dropCubeScaleX = dropCubeScaleX == 0 ? newCubeTr.localScale.x : Mathf.Abs(dropCubeScaleX);
         dropCubeScaleZ = dropCubeScaleZ == 0 ? newCubeTr.localScale.z : Mathf.Abs(dropCubeScaleZ);
