@@ -145,7 +145,7 @@ public class GameManager : MonoBehaviour
                                     newCubeTr.position.y,
                                     (prevCubeTr.position.z + newCubeTr.position.z) * 0.5f);
 
-            
+
             float dropCubeScaleX = newCubeTr.position.x - prevCubeTr.position.x;
             float dropCubeScaleZ = newCubeTr.position.z - prevCubeTr.position.z;
 
@@ -171,19 +171,12 @@ public class GameManager : MonoBehaviour
 
     private void CreateDropCube(Transform newCubeTr, float dropCubeScaleX, float dropCubeScaleZ)
     {
-
         var dropCube = Instantiate(newCube);
         Destroy(dropCube.GetComponent<MovingCube>());
         dropCube.AddComponent<Rigidbody>();
 
         Vector3 dropCubePosFactor = new Vector3(prevCube.transform.localScale.x, 0, prevCube.transform.localScale.z);
-        if (IsMoveX())
-            dropCubePosFactor.Scale(new Vector3(1, 0, 0));
-        else if (IsMoveZ())
-            dropCubePosFactor.Scale(new Vector3(0, 0, 1));
-
-        if (dropCubeScaleX < 0 || dropCubeScaleZ < 0)
-            dropCubePosFactor *= -1;
+        dropCubePosFactor = CompensationCubePos(dropCubeScaleX, dropCubeScaleZ, dropCubePosFactor);
 
         var dropCubePos = new Vector3(dropCubeScaleX * 0.5f + dropCubePosFactor.x,
                                       newCubeTr.position.y,
@@ -195,7 +188,20 @@ public class GameManager : MonoBehaviour
 
         dropCube.transform.position = dropCubePos;
         dropCube.transform.localScale = dropCubeScale;
+
+        Vector3 CompensationCubePos(float dropCubeScaleX, float dropCubeScaleZ, Vector3 dropCubePosFactor)
+        {
+            if (IsMoveX())
+                dropCubePosFactor.Scale(new Vector3(1, 0, 0));
+            else if (IsMoveZ())
+                dropCubePosFactor.Scale(new Vector3(0, 0, 1));
+
+            if (dropCubeScaleX < 0 || dropCubeScaleZ < 0)
+                dropCubePosFactor *= -1;
+            return dropCubePosFactor;
+        }
     }
+
 
     private static bool IsOutofPrevCube(Vector3 newCubeLocalScale)
     {
