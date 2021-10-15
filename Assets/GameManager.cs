@@ -128,6 +128,7 @@ public class GameManager : MonoBehaviour
         {
             comboCount++;
             comboText.text = $"Combo {comboCount}!!";
+
             posCenter = new Vector3(prevCubeTr.position.x, newCubeTr.position.y, prevCubeTr.position.z);
             newCubeTr.position = posCenter;
             newCubeTr.localScale = prevCubeTr.localScale;
@@ -139,14 +140,20 @@ public class GameManager : MonoBehaviour
         {
             comboCount = 0;
             comboText.text = $"";
+
             posCenter = new Vector3((prevCubeTr.position.x + newCubeTr.position.x) * 0.5f,
                                     newCubeTr.position.y,
                                     (prevCubeTr.position.z + newCubeTr.position.z) * 0.5f);
-            var newCubeLocalScale = new Vector3(newCubeTr.localScale.x - Mathf.Abs(newCubeTr.position.x - prevCubeTr.position.x),
-                                            newCubeTr.localScale.y,
-                                            newCubeTr.localScale.z - Mathf.Abs(newCubeTr.position.z - prevCubeTr.position.z));
 
-            if (newCubeLocalScale.x < 0 || newCubeLocalScale.z < 0)
+            
+            float dropCubeScaleX = newCubeTr.position.x - prevCubeTr.position.x;
+            float dropCubeScaleZ = newCubeTr.position.z - prevCubeTr.position.z;
+
+            var newCubeLocalScale = new Vector3(newCubeTr.localScale.x - Mathf.Abs(dropCubeScaleX),
+                                                newCubeTr.localScale.y,
+                                                newCubeTr.localScale.z - Mathf.Abs(dropCubeScaleZ));
+
+            if (IsOutofPrevCube(newCubeLocalScale))
             {
                 levelText.text = $"GameOver\nLevel {cubeCount}\nTab to Continue";
                 GameState = GameState.GameOver;
@@ -156,9 +163,45 @@ public class GameManager : MonoBehaviour
             {
                 newCubeTr.position = posCenter;
                 newCubeTr.localScale = newCubeLocalScale;
+
+                CreateDropCube(newCubeTr, dropCubeScaleX, dropCubeScaleZ);
             }
         }
     }
+
+    private void CreateDropCube(Transform newCubeTr, float dropCubeScaleX, float dropCubeScaleZ)
+    {
+
+        var dropCube = Instantiate(newCube);
+        Destroy(dropCube.GetComponent<MovingCube>());
+        dropCube.AddComponent<Rigidbody>();
+
+        Vector3 dropCubePosFactor = new Vector3(prevCube.transform.localScale.x, 0, prevCube.transform.localScale.z);
+        if (IsMoveX())
+            dropCubePosFactor.Scale(new Vector3(1, 0, 0));
+        else if (IsMoveZ())
+            dropCubePosFactor.Scale(new Vector3(0, 0, 1));
+
+        if (dropCubeScaleX < 0 || dropCubeScaleZ < 0)
+            dropCubePosFactor *= -1;
+
+        var dropCubePos = new Vector3(dropCubeScaleX * 0.5f + dropCubePosFactor.x,
+                                      newCubeTr.position.y,
+                                      dropCubeScaleZ * 0.5f + dropCubePosFactor.z);
+
+        dropCubeScaleX = dropCubeScaleX == 0 ? newCubeTr.localScale.x : Mathf.Abs(dropCubeScaleX);
+        dropCubeScaleZ = dropCubeScaleZ == 0 ? newCubeTr.localScale.z : Mathf.Abs(dropCubeScaleZ);
+        var dropCubeScale = new Vector3(dropCubeScaleX, newCubeTr.localScale.y, dropCubeScaleZ);
+
+        dropCube.transform.position = dropCubePos;
+        dropCube.transform.localScale = dropCubeScale;
+    }
+
+    private static bool IsOutofPrevCube(Vector3 newCubeLocalScale)
+    {
+        return newCubeLocalScale.x < 0 || newCubeLocalScale.z < 0;
+    }
+
     [SerializeField] float comboDistance = 0.05f;
     bool IsCombo(Vector3 prevCubePos, Vector3 newCubePos)
     {
