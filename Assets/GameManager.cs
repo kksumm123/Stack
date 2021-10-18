@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
         cubeColor = movingCube.GetComponent<Renderer>().sharedMaterial
                               .GetColor("_BaseColor");
 
-        newCube = movingCube;
+        currentCube = movingCube;
         comboCount = 0;
         comboText.text = "";
         CreateCube();
@@ -79,31 +79,31 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    GameObject newCube;
+    GameObject currentCube;
     GameObject prevCube;
     Vector3 multFactor;
     [SerializeField] int cubeCount = 0;
     private void CreateCube()
     {
-        prevCube = newCube;
+        prevCube = currentCube;
 
         cubeCount++;
-        newCube = Instantiate(prevCube);
+        currentCube = Instantiate(prevCube);
         if (IsMoveX())
         {
-            newCube.transform.position = new Vector3(positionValue, cubeCount * cubeHeight, prevCube.transform.position.z);
+            currentCube.transform.position = new Vector3(positionValue, cubeCount * cubeHeight, prevCube.transform.position.z);
             multFactor = new Vector3(-1, 1, 1);
         }
         else
         {
-            newCube.transform.position = new Vector3(prevCube.transform.position.x, cubeCount * cubeHeight, positionValue);
+            currentCube.transform.position = new Vector3(prevCube.transform.position.x, cubeCount * cubeHeight, positionValue);
             multFactor = new Vector3(1, 1, -1);
         }
-        newCube.GetComponent<MovingCube>().DesPos = Vector3.Scale(newCube.transform.position, multFactor);
+        currentCube.GetComponent<MovingCube>().DesPos = Vector3.Scale(currentCube.transform.position, multFactor);
 
         Color.RGBToHSV(cubeColor, out float h, out float s, out float v);
         cubeColor = Color.HSVToRGB(h + (1f / 256) * colorStep, s, v);
-        newCube.GetComponent<Renderer>().material.SetColor("_BaseColor", cubeColor);
+        currentCube.GetComponent<Renderer>().material.SetColor("_BaseColor", cubeColor);
 
         // 카메라 위로 이동
         Camera.main.transform.Translate(0, cubeHeight, 0, Space.World);
@@ -117,41 +117,41 @@ public class GameManager : MonoBehaviour
     {
         if (prevCube == null)
             return;
-        newCube.GetComponent<MovingCube>().Disable();
+        currentCube.GetComponent<MovingCube>().Disable();
 
         var prevCubeTr = prevCube.transform;
-        var newCubeTr = newCube.transform;
+        var currentCubeTr = currentCube.transform;
 
         //prevCube의 영역을 벗어나면 부수기
         Vector3 posCenter;
-        if (IsCombo(prevCubeTr.position, newCubeTr.position))
+        if (IsCombo(prevCubeTr.position, currentCubeTr.position))
         {
             comboCount++;
             comboText.text = $"Combo {comboCount}!!";
 
-            posCenter = new Vector3(prevCubeTr.position.x, newCubeTr.position.y, prevCubeTr.position.z);
-            newCubeTr.position = posCenter;
-            newCubeTr.localScale = prevCubeTr.localScale;
+            posCenter = new Vector3(prevCubeTr.position.x, currentCubeTr.position.y, prevCubeTr.position.z);
+            currentCubeTr.position = posCenter;
+            currentCubeTr.localScale = prevCubeTr.localScale;
 
             if (comboCount > 4)
-                newCubeTr.localScale *= comboScalePoint;
+                currentCubeTr.localScale *= comboScalePoint;
         }
         else
         {
             comboCount = 0;
             comboText.text = $"";
 
-            posCenter = new Vector3((prevCubeTr.position.x + newCubeTr.position.x) * 0.5f,
-                                    newCubeTr.position.y,
-                                    (prevCubeTr.position.z + newCubeTr.position.z) * 0.5f);
+            posCenter = new Vector3((prevCubeTr.position.x + currentCubeTr.position.x) * 0.5f,
+                                    currentCubeTr.position.y,
+                                    (prevCubeTr.position.z + currentCubeTr.position.z) * 0.5f);
 
 
-            float dropCubeScaleX = newCubeTr.position.x - prevCubeTr.position.x;
-            float dropCubeScaleZ = newCubeTr.position.z - prevCubeTr.position.z;
+            float dropCubeScaleX = currentCubeTr.position.x - prevCubeTr.position.x;
+            float dropCubeScaleZ = currentCubeTr.position.z - prevCubeTr.position.z;
 
-            var newCubeLocalScale = new Vector3(newCubeTr.localScale.x - Mathf.Abs(dropCubeScaleX),
-                                                newCubeTr.localScale.y,
-                                                newCubeTr.localScale.z - Mathf.Abs(dropCubeScaleZ));
+            var newCubeLocalScale = new Vector3(currentCubeTr.localScale.x - Mathf.Abs(dropCubeScaleX),
+                                                currentCubeTr.localScale.y,
+                                                currentCubeTr.localScale.z - Mathf.Abs(dropCubeScaleZ));
 
             if (IsOutofPrevCube(newCubeLocalScale))
             {
@@ -161,30 +161,24 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                newCubeTr.position = posCenter;
-                newCubeTr.localScale = newCubeLocalScale;
+                currentCubeTr.position = posCenter;
+                currentCubeTr.localScale = newCubeLocalScale;
 
-                CreateDropCube(newCubeTr, dropCubeScaleX, dropCubeScaleZ);
+                CreateDropCube(currentCubeTr, dropCubeScaleX, dropCubeScaleZ);
             }
         }
     }
 
-    private void CreateDropCube(Transform newCubeTr, float dropCubeScaleX, float dropCubeScaleZ)
+    private void CreateDropCube(Transform currentCubeTr, float dropCubeScaleX, float dropCubeScaleZ)
     {
-        var dropCube = Instantiate(newCube);
+        var dropCube = Instantiate(currentCube);
         Destroy(dropCube.GetComponent<MovingCube>());
         dropCube.AddComponent<Rigidbody>();
 
         Vector3 dropCubePosFactor = new Vector3(prevCube.transform.localScale.x, 0, prevCube.transform.localScale.z);
         dropCubePosFactor = CompensationCubePos(dropCubeScaleX, dropCubeScaleZ, dropCubePosFactor);
-
-        var dropCubePos = new Vector3((dropCubeScaleX + dropCubePosFactor.x) * 0.5f,
-                                      newCubeTr.position.y,
-                                      (dropCubeScaleZ + dropCubePosFactor.z) * 0.5f);
-
-        dropCubeScaleX = dropCubeScaleX == 0 ? newCubeTr.localScale.x : Mathf.Abs(dropCubeScaleX);
-        dropCubeScaleZ = dropCubeScaleZ == 0 ? newCubeTr.localScale.z : Mathf.Abs(dropCubeScaleZ);
-        var dropCubeScale = new Vector3(dropCubeScaleX, newCubeTr.localScale.y, dropCubeScaleZ);
+        Vector3 dropCubePos = SetDropCubePos(currentCubeTr, dropCubeScaleX, dropCubeScaleZ, dropCubePosFactor);
+        Vector3 dropCubeScale = SetDropCubeScale(currentCubeTr, ref dropCubeScaleX, ref dropCubeScaleZ);
 
         dropCube.transform.position = dropCubePos;
         dropCube.transform.localScale = dropCubeScale;
@@ -200,10 +194,21 @@ public class GameManager : MonoBehaviour
                 dropCubePosFactor *= -1;
             return dropCubePosFactor;
         }
+        Vector3 SetDropCubePos(Transform currentCubeTr, float dropCubeScaleX, float dropCubeScaleZ, Vector3 dropCubePosFactor)
+        {
+            return new Vector3((dropCubeScaleX + dropCubePosFactor.x) * 0.5f,
+                               currentCubeTr.position.y,
+                               (dropCubeScaleZ + dropCubePosFactor.z) * 0.5f);
+        }
+        Vector3 SetDropCubeScale(Transform currentCubeTr, ref float dropCubeScaleX, ref float dropCubeScaleZ)
+        {
+            dropCubeScaleX = dropCubeScaleX == 0 ? currentCubeTr.localScale.x : Mathf.Abs(dropCubeScaleX);
+            dropCubeScaleZ = dropCubeScaleZ == 0 ? currentCubeTr.localScale.z : Mathf.Abs(dropCubeScaleZ);
+            return new Vector3(dropCubeScaleX, currentCubeTr.localScale.y, dropCubeScaleZ);
+        }
     }
 
-
-    private static bool IsOutofPrevCube(Vector3 newCubeLocalScale)
+    bool IsOutofPrevCube(Vector3 newCubeLocalScale)
     {
         return newCubeLocalScale.x < 0 || newCubeLocalScale.z < 0;
     }
