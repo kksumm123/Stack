@@ -68,8 +68,7 @@ public class GameManager : MonoBehaviour
                 SceneManager.LoadScene(0);
             }
         }
-
-        if (Input.anyKeyDown)
+        else if (Input.anyKeyDown)
         {
             // 큐브 자르기
             BreakCube();
