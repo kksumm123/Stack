@@ -207,24 +207,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    bool IsOutofPrevCube(Vector3 newCubeLocalScale)
+    bool IsOutofPrevCube(Vector3 currentCubeLocalScale)
     {
-        return newCubeLocalScale.x < 0 || newCubeLocalScale.z < 0;
+        return currentCubeLocalScale.x < 0 || currentCubeLocalScale.z < 0;
     }
 
     [SerializeField] float comboDistance = 0.05f;
-    bool IsCombo(Vector3 prevCubePos, Vector3 newCubePos)
+    bool IsCombo(Vector3 prevCubePos, Vector3 currentCubePos)
     {
         if (IsMoveX())
         {
-            if (Mathf.Abs(prevCubePos.x - newCubePos.x) < comboDistance)
+            if (Mathf.Abs(prevCubePos.x - currentCubePos.x) < comboDistance)
                 return true;
             else
                 return false;
         }
         else if (IsMoveZ())
         {
-            if (Mathf.Abs(prevCubePos.z - newCubePos.z) < comboDistance)
+            if (Mathf.Abs(prevCubePos.z - currentCubePos.z) < comboDistance)
                 return true;
             else
                 return false;
