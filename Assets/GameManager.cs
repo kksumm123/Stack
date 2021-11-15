@@ -1,4 +1,4 @@
-using System;
+Ôªøusing System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] float cubeHeight = 0.2f;
     [SerializeField] float positionValue = 2;
     Color cubeColor = new Color(214, 255, 107, 255);
+    public Color CubeColor { set => cubeColor = value; }
     [SerializeField] float colorStep = 5f;
     void Start()
     {
@@ -70,7 +71,7 @@ public class GameManager : MonoBehaviour
         }
         else if (Input.anyKeyDown)
         {
-            // ≈•∫Í ¿⁄∏£±‚
+            // ÌÅêÎ∏å ÏûêÎ•¥Í∏∞
             BreakCube();
 
             if (GameState == GameState.Play)
@@ -88,6 +89,7 @@ public class GameManager : MonoBehaviour
 
         cubeCount++;
         currentCube = Instantiate(prevCube);
+        currentCube.name = $"Cube_{cubeCount}";
         if (IsMoveX())
         {
             currentCube.transform.position = new Vector3(positionValue, cubeCount * cubeHeight, prevCube.transform.position.z);
@@ -104,7 +106,7 @@ public class GameManager : MonoBehaviour
         cubeColor = Color.HSVToRGB(h + (1f / 256) * colorStep, s, v);
         currentCube.GetComponent<Renderer>().material.SetColor("_BaseColor", cubeColor);
 
-        // ƒ´∏ﬁ∂Û ¿ß∑Œ ¿Ãµø
+        // Ïπ¥Î©îÎùº ÏúÑÎ°ú Ïù¥Îèô
         Camera.main.transform.Translate(0, cubeHeight, 0, Space.World);
 
         levelText.text = $"Level {cubeCount}";
@@ -121,7 +123,7 @@ public class GameManager : MonoBehaviour
         var prevCubeTr = prevCube.transform;
         var currentCubeTr = currentCube.transform;
 
-        //prevCube¿« øµø™¿ª π˛æÓ≥™∏È ∫Œºˆ±‚
+        //prevCubeÏùò ÏòÅÏó≠ÏùÑ Î≤óÏñ¥ÎÇòÎ©¥ Î∂ÄÏàòÍ∏∞
         Vector3 posCenter;
         if (IsCombo(prevCubeTr.position, currentCubeTr.position))
         {
@@ -133,7 +135,12 @@ public class GameManager : MonoBehaviour
             currentCubeTr.localScale = prevCubeTr.localScale;
 
             if (comboCount > 4)
-                currentCubeTr.localScale *= comboScalePoint;
+            {
+                var originScale = currentCubeTr.localScale;
+                originScale.x *= comboScalePoint;
+                originScale.z *= comboScalePoint;
+                currentCubeTr.localScale = originScale;
+            }
         }
         else
         {
@@ -152,7 +159,7 @@ public class GameManager : MonoBehaviour
                                                 currentCubeTr.localScale.y,
                                                 currentCubeTr.localScale.z - Mathf.Abs(dropCubeScaleZ));
 
-            if (IsOutofPrevCube(newCubeLocalScale))
+            if (IsOutOfPrevCube(newCubeLocalScale))
             {
                 levelText.text = $"GameOver\nLevel {cubeCount}\nTab to Continue";
                 GameState = GameState.GameOver;
@@ -160,44 +167,46 @@ public class GameManager : MonoBehaviour
             }
             else
             {
+                var currentCubeOriginPos = currentCubeTr.position;
+
                 currentCubeTr.position = posCenter;
                 currentCubeTr.localScale = newCubeLocalScale;
 
-                CreateDropCube(currentCubeTr, dropCubeScaleX, dropCubeScaleZ);
+                CreateDropCube(currentCubeTr, dropCubeScaleX, dropCubeScaleZ, currentCubeOriginPos);
             }
         }
     }
 
-    private void CreateDropCube(Transform currentCubeTr, float dropCubeScaleX, float dropCubeScaleZ)
+    private void CreateDropCube(Transform currentCubeTr, float dropCubeScaleX, float dropCubeScaleZ, Vector3 currentCubeOriginPos)
     {
         var dropCube = Instantiate(currentCube);
         Destroy(dropCube.GetComponent<MovingCube>());
         dropCube.AddComponent<Rigidbody>();
 
-        Vector3 dropCubePosFactor = new Vector3(prevCube.transform.localScale.x, 0, prevCube.transform.localScale.z);
-        dropCubePosFactor = CompensationCubePos(dropCubeScaleX, dropCubeScaleZ, dropCubePosFactor);
-        Vector3 dropCubePos = SetDropCubePos(currentCubeTr, dropCubeScaleX, dropCubeScaleZ, dropCubePosFactor);
+        Vector3 dropCubePosCompensationFactor = currentCubeTr.localScale * 0.5f;
+        dropCubePosCompensationFactor = CompensationCubePos(dropCubeScaleX, dropCubeScaleZ, dropCubePosCompensationFactor);
+        Vector3 dropCubePos = SetDropCubePos(currentCubeTr, dropCubeScaleX, dropCubeScaleZ, dropCubePosCompensationFactor);
         Vector3 dropCubeScale = SetDropCubeScale(currentCubeTr, ref dropCubeScaleX, ref dropCubeScaleZ);
 
         dropCube.transform.position = dropCubePos;
         dropCube.transform.localScale = dropCubeScale;
 
-        Vector3 CompensationCubePos(float dropCubeScaleX, float dropCubeScaleZ, Vector3 dropCubePosFactor)
+        Vector3 CompensationCubePos(float dropCubeScaleX, float dropCubeScaleZ, Vector3 dropCubePosCompensationFactor)
         {
             if (IsMoveX())
-                dropCubePosFactor.Scale(new Vector3(1, 0, 0));
+                dropCubePosCompensationFactor.Scale(new Vector3(1, 0, 0));
             else if (IsMoveZ())
-                dropCubePosFactor.Scale(new Vector3(0, 0, 1));
+                dropCubePosCompensationFactor.Scale(new Vector3(0, 0, 1));
 
             if (dropCubeScaleX < 0 || dropCubeScaleZ < 0)
-                dropCubePosFactor *= -1;
-            return dropCubePosFactor;
+                dropCubePosCompensationFactor *= -1;
+            return dropCubePosCompensationFactor;
         }
-        Vector3 SetDropCubePos(Transform currentCubeTr, float dropCubeScaleX, float dropCubeScaleZ, Vector3 dropCubePosFactor)
+        Vector3 SetDropCubePos(Transform currentCubeTr, float dropCubeScaleX, float dropCubeScaleZ, Vector3 dropCubePosCompensationFactor)
         {
-            return new Vector3((dropCubeScaleX + dropCubePosFactor.x) * 0.5f,
+            return new Vector3(currentCubeOriginPos.x + dropCubePosCompensationFactor.x,
                                currentCubeTr.position.y,
-                               (dropCubeScaleZ + dropCubePosFactor.z) * 0.5f);
+                               currentCubeOriginPos.z + dropCubePosCompensationFactor.z);
         }
         Vector3 SetDropCubeScale(Transform currentCubeTr, ref float dropCubeScaleX, ref float dropCubeScaleZ)
         {
@@ -207,7 +216,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    bool IsOutofPrevCube(Vector3 currentCubeLocalScale)
+    bool IsOutOfPrevCube(Vector3 currentCubeLocalScale)
     {
         return currentCubeLocalScale.x < 0 || currentCubeLocalScale.z < 0;
     }
